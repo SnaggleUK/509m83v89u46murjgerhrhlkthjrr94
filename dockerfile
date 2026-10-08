@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 libglib2.0-0 dotnet-sdk-8.0 \
  && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --break-system-packages --no-cache-dir "huggingface_hub[cli]" hf_transfer
+RUN pip install --break-system-packages --no-cache-dir "huggingface_hub[cli]" hf_transfer jupyterlab
 
 RUN git clone --depth 1 https://github.com/mcmonkeyprojects/SwarmUI /opt/SwarmUI
 WORKDIR /opt/SwarmUI
@@ -24,5 +24,5 @@ RUN dotnet build src/SwarmUI.csproj --configuration Release -o src/bin/live_rele
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
-EXPOSE 7801
+EXPOSE 7801 8888
 CMD ["/start.sh"]
