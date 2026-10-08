@@ -26,4 +26,4 @@ jobs:
           context: .
           push: true
           no-cache: true
-          tags: ghcr.io/${{ github.repository_owner }}/509m83v89u46murjgerhrhlkthjrr94:latest
+          tags: ghcr.io/snaggleuk/509m83v89u46murjgerhrhlkthjrr94:latest
