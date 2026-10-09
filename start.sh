@@ -12,7 +12,7 @@ done
 if [ -n "$JUPYTER_PASSWORD" ]; then
   export JUPYTER_TOKEN="$JUPYTER_PASSWORD"
 fi
-jupyter lab --port=8888 --ip=* --allow-root --no-browser \
-  --ServerApp.allow_origin=* --ServerApp.preferred_dir=/workspace &
+   jupyter lab --port=8888 --ip=* --allow-root --no-browser \
+     --ServerApp.allow_origin=* --ServerApp.root_dir=/workspace &
 
 exec ./launch-linux.sh --launch_mode none --host 0.0.0.0
