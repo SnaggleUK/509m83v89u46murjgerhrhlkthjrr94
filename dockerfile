@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git wget curl ca-certificates nano aria2 \
     python3 python3-pip python3-venv python3-dev build-essential \
-    libgl1 libglib2.0-0 dotnet-sdk-8.0 \
+       libgl1 libglib2.0-0 dotnet-sdk-8.0 dotnet-sdk-10.0 \
  && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --break-system-packages --no-cache-dir "huggingface_hub[cli]" hf_transfer jupyterlab
