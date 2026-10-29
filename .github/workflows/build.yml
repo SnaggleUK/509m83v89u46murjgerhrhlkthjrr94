@@ -25,5 +25,10 @@ jobs:
         with:
           context: .
           push: true
-          no-cache: true
+          # Reuse unchanged layers (apt, PyTorch) between builds so their digests stay the same
+          # and RunPod hosts that already have them don't download them again.
+          # CACHEBUST forces SwarmUI/ComfyUI to be re-cloned fresh every build.
+          build-args: CACHEBUST=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: ghcr.io/snaggleuk/509m83v89u46murjgerhrhlkthjrr94:latest
