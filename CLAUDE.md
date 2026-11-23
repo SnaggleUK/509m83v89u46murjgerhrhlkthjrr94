@@ -3,7 +3,8 @@
 The owner's RunPod image for SwarmUI + ComfyUI. GitHub Actions builds it and pushes it to
 `ghcr.io/snaggleuk/509m83v89u46murjgerhrhlkthjrr94:latest`. A push to `main` triggers a build,
 and so does the weekly Monday 04:00 UTC schedule. **Merging to main publishes the image that
-RunPod pulls**, so make changes on a branch and merge only when the owner agrees.
+RunPod pulls.** The owner has said (Nov 2026): don't ask before merging. Work on a branch, then merge
+it to main yourself once the change is ready, and tell them it's building.
 
 ## Files
 - `dockerfile`: the image (lowercase name, so don't rename it).
@@ -31,7 +32,7 @@ Don't put anything slow or rarely-changing below `CACHEBUST`.
    (the NVIDIA apt suffix, e.g. `13-4`; it must match torch's CUDA major.minor).
 3. Expect the SageAttention compile to rerun (~15–20 min on GitHub's runner).
 4. Check RunPod host drivers support that CUDA version (CUDA 13.x needs driver 580+).
-5. Do it on a branch, let the build pass, then merge.
+5. Do it on a branch, merge it (no need to ask), then watch the Actions run and report the result.
 
 ## SageAttention 2 (added Nov 2026)
 - This is compiled from source (`thu-ml/SageAttention`) inside the image against the frozen torch.
