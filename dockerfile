@@ -21,28 +21,39 @@ RUN pip install --break-system-packages "huggingface_hub[cli]" hf_transfer jupyt
 
 # PyTorch in its own layer, BEFORE SwarmUI/ComfyUI. It's the biggest chunk of the image and
 # rarely changes, so the weekly rebuild can reuse this layer instead of re-shipping it.
+# Frozen on purpose: SageAttention below is compiled against this exact torch, so bumping it
+# means a ~20 min recompile. To upgrade, change these three values together.
+# (PyTorch has dropped CUDA 13.0 builds; 13.2 is their current default.)
+ARG TORCH_VERSION=2.15.0
+ARG TORCH_CUDA=cu132
+ARG CUDA_PKG=13-2
 RUN python3 -m venv /opt/venv \
- && /opt/venv/bin/pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
+ && /opt/venv/bin/pip install "torch==${TORCH_VERSION}" torchvision --index-url https://download.pytorch.org/whl/${TORCH_CUDA} \
+ && /opt/venv/bin/pip freeze | grep -E '^(torch|torchvision)==' > /opt/torch-lock.txt
+# Every later pip install obeys this lock, so ComfyUI's requirements (or a custom node) can't
+# silently swap torch for a newer one and break SageAttention.
+ENV PIP_CONSTRAINT=/opt/torch-lock.txt
 
 # SageAttention 2 (faster attention kernels for ComfyUI; enabled with --use-sage-attention).
 # There's no official Linux wheel, and community wheels break whenever torch changes, so we
 # compile it here against the exact torch above. The CUDA compiler is installed, used and
 # deleted inside this one RUN so it never ends up in the image (only the ~50 MB result does).
-# GitHub's runners have no GPU, so the target cards are listed explicitly:
-# 8.0 A100 | 8.6 RTX 3090/A40/A6000 | 8.9 RTX 4090/L40S | 9.0 H100/H200 | 10.0 B200 | 12.0 RTX 5090/PRO 6000
-# Sits right after PyTorch so it's cached too - the slow compile only reruns when torch does.
-ARG SAGE_ARCHS="8.0;8.6;8.9;9.0;10.0;12.0"
+# GitHub's runners have no GPU, so the target cards are listed explicitly. Only the two
+# families actually used, to keep the compile short:
+#   8.6 = Ampere (RTX A4500, 3090, A40, A6000)   8.9 = Ada (RTX 4090, RTX 4500 Ada, L40S)
+# Other cards (A100, H100, 5090...) still work, just without SageAttention - add 8.0 / 9.0 / 12.0 here if needed.
+ARG SAGE_ARCHS="8.6;8.9"
 RUN wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
  && dpkg -i cuda-keyring_1.1-1_all.deb && rm cuda-keyring_1.1-1_all.deb \
- && apt-get update && apt-get install -y --no-install-recommends cuda-nvcc-13-0 cuda-libraries-dev-13-0 \
+ && apt-get update && apt-get install -y --no-install-recommends cuda-nvcc-${CUDA_PKG} cuda-libraries-dev-${CUDA_PKG} \
  && /opt/venv/bin/pip install setuptools wheel ninja packaging \
  && git clone --depth 1 https://github.com/thu-ml/SageAttention /tmp/sage \
  && cd /tmp/sage \
- && CUDA_HOME=/usr/local/cuda-13.0 PATH=/usr/local/cuda-13.0/bin:$PATH \
-    TORCH_CUDA_ARCH_LIST="$SAGE_ARCHS" MAX_JOBS=2 EXT_PARALLEL=1 NVCC_APPEND_FLAGS="--threads 2" \
+ && CUDA_HOME=/usr/local/cuda PATH=/usr/local/cuda/bin:$PATH \
+    TORCH_CUDA_ARCH_LIST="$SAGE_ARCHS" MAX_JOBS=4 \
     /opt/venv/bin/pip install --no-build-isolation . \
  && cd / && rm -rf /tmp/sage \
- && apt-get purge -y --auto-remove cuda-nvcc-13-0 cuda-libraries-dev-13-0 cuda-keyring \
+ && apt-get purge -y --auto-remove cuda-nvcc-${CUDA_PKG} cuda-libraries-dev-${CUDA_PKG} cuda-keyring \
  && rm -rf /var/lib/apt/lists/* /usr/local/cuda* /root/.cache \
  && /opt/venv/bin/python -c "import sageattention; print('sageattention OK')"
 
