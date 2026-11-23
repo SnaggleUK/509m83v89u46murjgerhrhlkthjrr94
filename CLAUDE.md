@@ -41,6 +41,8 @@ Don't put anything slow or rarely-changing below `CACHEBUST`.
   - 8.6 = Ampere (RTX A4500, 3090, A40, A6000), 8.9 = Ada (RTX 4090, RTX 4500 Ada, L40S).
   - The owner mostly uses 4090 / 4500 for image gen. To support more cards add 8.0 (A100),
     9.0 (H100), 10.0 (B200) or 12.0 (RTX 5090 / PRO 6000). Each one adds compile time.
+- torch 2.15+ requires C++20; Sage's setup.py hardcodes `-std=c++17`, so the Dockerfile seds it to
+  c++20 before building (first build failed on exactly this, Nov 2026).
 - The build ends with `import sageattention` so a broken compile fails the build loudly.
 - **Turning it on** is a runtime setting, not something in this repo: SwarmUI → Server → Backends →
   ComfyUI Self-Starting → ExtraArgs `--use-sage-attention`. That's stored in

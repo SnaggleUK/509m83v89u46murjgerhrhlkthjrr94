@@ -36,7 +36,8 @@ ENV PIP_CONSTRAINT=/opt/torch-lock.txt
 
 # SageAttention 2 (faster attention kernels for ComfyUI; enabled with --use-sage-attention).
 # There's no official Linux wheel, and community wheels break whenever torch changes, so we
-# compile it here against the exact torch above. The CUDA compiler is installed, used and
+# compile it here against the exact torch above. torch 2.15+ headers need C++20 but Sage's
+# setup.py still says C++17, hence the sed below (harmless once upstream catches up). The CUDA compiler is installed, used and
 # deleted inside this one RUN so it never ends up in the image (only the ~50 MB result does).
 # GitHub's runners have no GPU, so the target cards are listed explicitly. Only the two
 # families actually used, to keep the compile short:
@@ -49,6 +50,7 @@ RUN wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/
  && /opt/venv/bin/pip install setuptools wheel ninja packaging \
  && git clone --depth 1 https://github.com/thu-ml/SageAttention /tmp/sage \
  && cd /tmp/sage \
+ && sed -i 's/-std=c++17/-std=c++20/g' setup.py \
  && CUDA_HOME=/usr/local/cuda PATH=/usr/local/cuda/bin:$PATH \
     TORCH_CUDA_ARCH_LIST="$SAGE_ARCHS" MAX_JOBS=4 \
     /opt/venv/bin/pip install --no-build-isolation . \
