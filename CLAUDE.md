@@ -37,10 +37,14 @@ Don't put anything slow or rarely-changing below `CACHEBUST`.
 - This is compiled from source (`thu-ml/SageAttention`) inside the image against the frozen torch.
   There's no official Linux wheel, and community wheels break on torch changes.
 - The CUDA compiler is installed, used and deleted in the same `RUN` so the image doesn't grow by GBs.
-- GitHub runners have no GPU, so the target architectures come from `ARG SAGE_ARCHS="8.6;8.9"`:
-  - 8.6 = Ampere (RTX A4500, 3090, A40, A6000), 8.9 = Ada (RTX 4090, RTX 4500 Ada, L40S).
-  - The owner mostly uses 4090 / 4500 for image gen. To support more cards add 8.0 (A100),
-    9.0 (H100), 10.0 (B200) or 12.0 (RTX 5090 / PRO 6000). Each one adds compile time.
+- GitHub runners have no GPU, so the target architectures come from `ARG SAGE_ARCHS="8.6;8.9;12.0"`:
+  - 8.6 = Ampere (RTX A4500, 3090, A40, A6000), 8.9 = Ada (RTX 4090, L40S),
+    12.0 = Blackwell (RTX PRO 4500/6000 Blackwell, RTX 5090).
+  - The owner mostly uses the **RTX 4090 (8.9)** and the **RTX PRO 4500 Blackwell (12.0)**. Their "4500"
+    means the Blackwell one; leaving 12.0 out once caused "no kernel image is available".
+  - To support more cards add 8.0 (A100), 9.0 (H100) or 10.0 (B200). Each one adds compile time.
+  - Check a card's compute capability with:
+    `python -c "import torch; print(torch.cuda.get_device_capability())"`
 - torch 2.15+ requires C++20; Sage's setup.py hardcodes `-std=c++17`, so the Dockerfile seds it to
   c++20 before building (first build failed on exactly this, Nov 2026).
 - The build ends with `import sageattention` so a broken compile fails the build loudly.

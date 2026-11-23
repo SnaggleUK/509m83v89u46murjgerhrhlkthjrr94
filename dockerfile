@@ -39,11 +39,11 @@ ENV PIP_CONSTRAINT=/opt/torch-lock.txt
 # compile it here against the exact torch above. torch 2.15+ headers need C++20 but Sage's
 # setup.py still says C++17, hence the sed below (harmless once upstream catches up). The CUDA compiler is installed, used and
 # deleted inside this one RUN so it never ends up in the image (only the ~50 MB result does).
-# GitHub's runners have no GPU, so the target cards are listed explicitly. Only the two
-# families actually used, to keep the compile short:
-#   8.6 = Ampere (RTX A4500, 3090, A40, A6000)   8.9 = Ada (RTX 4090, RTX 4500 Ada, L40S)
-# Other cards (A100, H100, 5090...) still work, just without SageAttention - add 8.0 / 9.0 / 12.0 here if needed.
-ARG SAGE_ARCHS="8.6;8.9"
+# GitHub's runners have no GPU, so the target cards are listed explicitly:
+#   8.6 = Ampere (RTX A4500, 3090, A40, A6000)   8.9 = Ada (RTX 4090, L40S)
+#   12.0 = Blackwell workstation/consumer (RTX PRO 4500/6000 Blackwell, RTX 5090)
+# Other cards (A100, H100, B200) still run, but SageAttention errors on them - add 8.0 / 9.0 / 10.0 if needed.
+ARG SAGE_ARCHS="8.6;8.9;12.0"
 RUN wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
  && dpkg -i cuda-keyring_1.1-1_all.deb && rm cuda-keyring_1.1-1_all.deb \
  && apt-get update && apt-get install -y --no-install-recommends cuda-nvcc-${CUDA_PKG} cuda-libraries-dev-${CUDA_PKG} \
