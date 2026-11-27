@@ -58,3 +58,8 @@ Don't put anything slow or rarely-changing below `CACHEBUST`.
 ## Owner preferences
 - Fast pod boot and a small image are priorities. Keep heavy work at build time, not in `start.sh`.
 - Explain trade-offs plainly. Challenge ideas rather than just agreeing.
+
+## Image tags and rollback (Nov 2026)
+- Every build pushes `:latest` and a dated tag `:YYYY-MM-DD-<run_id>`.
+- If a weekly rebuild breaks (bad upstream SwarmUI/ComfyUI commit), point the RunPod template's
+  image at the last good dated tag until it's fixed. Find the tags on the repo's Packages page.

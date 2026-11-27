@@ -21,6 +21,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Every build also gets a dated tag (e.g. 2026-11-30-1234567890) so a bad
+      # upstream SwarmUI/ComfyUI commit can be rolled back by pointing RunPod at an older tag.
+      - name: Date tag
+        id: tag
+        run: echo "date=$(date -u +%Y-%m-%d)-${{ github.run_id }}" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
           context: .
@@ -31,4 +36,6 @@ jobs:
           build-args: CACHEBUST=${{ github.run_id }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ghcr.io/snaggleuk/509m83v89u46murjgerhrhlkthjrr94:latest
+          tags: |
+            ghcr.io/snaggleuk/509m83v89u46murjgerhrhlkthjrr94:latest
+            ghcr.io/snaggleuk/509m83v89u46murjgerhrhlkthjrr94:${{ steps.tag.outputs.date }}
